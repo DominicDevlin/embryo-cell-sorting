@@ -274,6 +274,30 @@ int CellularPotts::DeltaH(int x,int y, int xp, int yp, PDE *PDEfield)
     }
   }
 
+
+  // ==========================================
+  // ACTIVE MOTION TERM
+  // ==========================================
+  if (par.active_motion)
+  {
+    double &mot_strength_sxy = cell_sxy.GetMotilityStrength();
+    double &mot_strength_sxyp = cell_sxyp.GetMotilityStrength();
+    if (sxyp == MEDIUM)
+    {
+      DH -= cell_sxy.GetMotilityStrength() * cell_sxy.ActiveDotProduct_removed(x, y);
+    }
+    else if (sxy == MEDIUM)
+    {
+      DH -= cell_sxyp.GetMotilityStrength() * cell_sxyp.ActiveDotProduct_added(x, y);
+    }
+    else
+    {
+      DH -= cell_sxyp.GetMotilityStrength() * cell_sxyp.ActiveDotProduct_added(x, y);
+      DH -= cell_sxy.GetMotilityStrength() * cell_sxy.ActiveDotProduct_removed(x, y);
+    }
+  }
+
+
   
   /* Perimeter constraint */
   {

@@ -494,6 +494,89 @@ private:
     return --target_perimeter;
   }
 
+
+  double& GetMotilityStrength()
+  {
+    return motility_strength;
+  }
+
+
+  inline double ActiveDotProduct_added(int x, int y)
+  {
+    double Lx = par.sizex - 2;
+    double Ly = par.sizey - 2;
+
+    com_x = (double)sum_x / area;
+    com_y = (double)sum_y / area;
+
+    double dx = (double)x - com_x;
+    double dy = (double)y - com_y;
+    
+    if (par.periodic_boundaries) 
+    {
+        dx -= Lx * round(dx / Lx);
+        dy -= Ly * round(dy / Ly);
+
+        // if (dx >  Lx / 2.0) dx -= Lx;
+        // if (dx < -Lx / 2.0) dx += Lx;
+        // if (dy >  Ly / 2.0) dy -= Ly;
+        // if (dy < -Ly / 2.0) dy += Ly;
+    }
+
+    // Displacement of COM: dCOM = (x - COM_old) / (Area + 1)
+    com_shiftx = dx / (double)(area + 1);
+    com_shifty = dy / (double)(area + 1);
+
+    // Energy contribution: area * (dCOM . Velocity)
+    return (double)area * (com_shiftx * avg_vx + com_shifty * avg_vy);
+
+
+    // double dirx = double(sum_x+x)/double(area+1) - double(sum_x)/double(area);
+    // double diry = double(sum_y+y)/double(area+1) - double(sum_y)/double(area);
+
+    // double dot_product = area * (dirx * avg_vx + diry * avg_vy);
+    // return dot_product; 
+  }
+
+  inline double ActiveDotProduct_removed(int x, int y)
+  {
+    double Lx = par.sizex - 2;
+    double Ly = par.sizey - 2;
+
+    com_x = (double)sum_x / area;
+    com_y = (double)sum_y / area;
+
+    // Vector from COM to the pixel being removed
+    double dx = (double)x - com_x;
+    double dy = (double)y - com_y;
+
+    if (par.periodic_boundaries) 
+    {
+        dx -= Lx * round(dx / Lx);
+        dy -= Ly * round(dy / Ly);
+        // if (dx >  Lx / 2.0) dx -= Lx;
+        // if (dx < -Lx / 2.0) dx += Lx;
+        // if (dy >  Ly / 2.0) dy -= Ly;
+        // if (dy < -Ly / 2.0) dy += Ly;
+    }
+
+    // cout << dx << endl;
+    // if (abs(dx) > 20)
+    //   cout << x << '\t' << y << '\t' << com_x << '\t' << com_y << '\t' << dx << endl;
+
+    // Displacement of COM: dCOM = (COM_old - x) / (Area - 1)
+    // Note: Removing a pixel moves the COM in the opposite direction
+    com_shiftx = -dx / (double)(area - 1);
+    com_shifty = -dy / (double)(area - 1);
+    // if (abs(toreturn) > 1)
+    // {
+    //   cout << shift_x << '\t' << avg_vx << '\t' << shift_y << '\t' << avg_vy << '\t' << toreturn << endl;
+    // }
+      // cout << toreturn << endl;
+    // cout << (double)area * (shift_x * avg_vx + shift_y * avg_vy) << endl;
+    return (double)area * (com_shiftx * avg_vx + com_shifty * avg_vy);
+  }  
+
   
   /*! \brief Sets target area to actual area, to remove "pressure".
 
@@ -511,6 +594,12 @@ private:
   static int MaxTau(void) {
     return maxtau;
   }
+
+
+
+
+
+
 
 protected:
   int colour;
