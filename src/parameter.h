@@ -26,13 +26,15 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <iostream>
 using namespace std;
 class Parameter {
-  
- public: 
+
+ public:
   Parameter();
   ~Parameter();
   void CleanUp(void);
   void Read(const char *filename);
   void Write(ostream &os) const;
+  void ReadTypesParamTable(const char *fname);
+
   double T;
   int target_area;
   int target_length;
@@ -41,6 +43,46 @@ class Parameter {
   int target_perimeter;
   int lambda_perimeter;
   char * Jtable;
+  char * TypesParamTable;
+
+  int n_cell_types;
+  int *target_area_per_type;
+  int *target_length_per_type;
+  int *target_perimeter_per_type;
+  double *lambda_per_type;
+  double *lambda2_per_type;
+  int *lambda_perimeter_per_type;
+
+  inline int getTargetArea(int tau) const {
+    if (target_area_per_type && tau >= 0 && tau < n_cell_types)
+      return target_area_per_type[tau];
+    return target_area;
+  }
+  inline int getTargetLength(int tau) const {
+    if (target_length_per_type && tau >= 0 && tau < n_cell_types)
+      return target_length_per_type[tau];
+    return target_length;
+  }
+  inline int getTargetPerimeter(int tau) const {
+    if (target_perimeter_per_type && tau >= 0 && tau < n_cell_types)
+      return target_perimeter_per_type[tau];
+    return target_perimeter;
+  }
+  inline double getLambda(int tau) const {
+    if (lambda_per_type && tau >= 0 && tau < n_cell_types)
+      return lambda_per_type[tau];
+    return lambda;
+  }
+  inline double getLambda2(int tau) const {
+    if (lambda2_per_type && tau >= 0 && tau < n_cell_types)
+      return lambda2_per_type[tau];
+    return lambda2;
+  }
+  inline int getLambdaPerimeter(int tau) const {
+    if (lambda_perimeter_per_type && tau >= 0 && tau < n_cell_types)
+      return lambda_perimeter_per_type[tau];
+    return lambda_perimeter;
+  }
   int conn_diss;
   bool vecadherinknockout;
   bool extensiononly;

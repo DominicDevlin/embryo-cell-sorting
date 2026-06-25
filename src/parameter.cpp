@@ -28,6 +28,7 @@ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 #include <cstdlib>
 #include <cerrno>
 #include <iostream>
+#include <fstream>
 #include "output.h"
 #include "parse.h"
 
@@ -41,6 +42,14 @@ Parameter::Parameter() {
   target_perimeter = 0;
   lambda_perimeter = 0;
   Jtable = strdup("J.dat");
+  TypesParamTable = 0;
+  n_cell_types = 0;
+  target_area_per_type = 0;
+  target_length_per_type = 0;
+  target_perimeter_per_type = 0;
+  lambda_per_type = 0;
+  lambda2_per_type = 0;
+  lambda_perimeter_per_type = 0;
   conn_diss = 2000;
   vecadherinknockout = false;
   extensiononly = false;
@@ -93,8 +102,22 @@ void Parameter::CleanUp(void) {
      free(decay_rate);
   if (secr_rate) 
      free(secr_rate);
-  if (datadir) 
+  if (datadir)
      free(datadir);
+  if (TypesParamTable)
+     free(TypesParamTable);
+  if (target_area_per_type)
+     free(target_area_per_type);
+  if (target_length_per_type)
+     free(target_length_per_type);
+  if (target_perimeter_per_type)
+     free(target_perimeter_per_type);
+  if (lambda_per_type)
+     free(lambda_per_type);
+  if (lambda2_per_type)
+     free(lambda2_per_type);
+  if (lambda_perimeter_per_type)
+     free(lambda_perimeter_per_type);
 
 }
 
@@ -121,6 +144,9 @@ void Parameter::Read(const char *filename) {
   target_perimeter = igetpar(fp, "target_perimeter", 0, true);
   lambda_perimeter = igetpar(fp, "lambda_perimeter", 0, true);
   Jtable = sgetpar(fp, "Jtable", "J.dat", true);
+  TypesParamTable = sgetpar(fp, "TypesParamTable", "", true);
+  if (TypesParamTable && strlen(TypesParamTable) > 0)
+    ReadTypesParamTable(TypesParamTable);
   conn_diss = igetpar(fp, "conn_diss", 2000, true);
   vecadherinknockout = bgetpar(fp, "vecadherinknockout", false, true);
   extensiononly = bgetpar(fp, "extensiononly", false, true);
@@ -173,8 +199,10 @@ void Parameter::Write(ostream &os) const {
   os << " target_perimeter = " << target_perimeter << endl;
   os << " lambda_perimeter = " << lambda_perimeter << endl;
 
-  if (Jtable) 
+  if (Jtable)
     os << " Jtable = " << Jtable << endl;
+  if (TypesParamTable && strlen(TypesParamTable) > 0)
+    os << " TypesParamTable = " << TypesParamTable << endl;
   os << " conn_diss = " << conn_diss << endl;
   os << " vecadherinknockout = " << sbool(vecadherinknockout) << endl;
   os << " extensiononly = " << sbool(extensiononly) << endl;
@@ -211,6 +239,35 @@ void Parameter::Write(ostream &os) const {
 ostream &operator<<(ostream &os, Parameter &p) {
   p.Write(os);
   return os;
+}
+
+void Parameter::ReadTypesParamTable(const char *fname) {
+
+  cerr << "Reading per-type parameters...\n";
+  ifstream f(fname);
+  if (!f) {
+    perror(fname);
+    exit(1);
+  }
+
+  f >> n_cell_types;
+  cerr << "Number of cell types: " << n_cell_types << endl;
+
+  target_area_per_type = (int *)malloc(n_cell_types * sizeof(int));
+  target_length_per_type = (int *)malloc(n_cell_types * sizeof(int));
+  target_perimeter_per_type = (int *)malloc(n_cell_types * sizeof(int));
+  lambda_per_type = (double *)malloc(n_cell_types * sizeof(double));
+  lambda2_per_type = (double *)malloc(n_cell_types * sizeof(double));
+  lambda_perimeter_per_type = (int *)malloc(n_cell_types * sizeof(int));
+
+  for (int i = 0; i < n_cell_types; i++) {
+    f >> target_area_per_type[i]
+      >> target_length_per_type[i]
+      >> target_perimeter_per_type[i]
+      >> lambda_per_type[i]
+      >> lambda2_per_type[i]
+      >> lambda_perimeter_per_type[i];
+  }
 }
 
 Parameter par;

@@ -244,21 +244,21 @@ int CellularPotts::DeltaH(int x,int y, int xp, int yp, PDE *PDEfield)
   }
 
   
-  // lambda is determined by chemical 0
-    
-  //cerr << "[" << lambda << "]";
+  /* Area constraint */
   if ( sxyp == MEDIUM ) {
-    DH += (int)(par.lambda *  (1. - 2. *   
-			       (double) ( (*cell)[sxy].Area() - (*cell)[sxy].TargetArea()) ));
+    DH += (int)(par.getLambda((*cell)[sxy].getTau()) * (1. - 2. *
+	(double)( (*cell)[sxy].Area() - (*cell)[sxy].TargetArea()) ));
   }
   else if ( sxy == MEDIUM ) {
-    DH += (int)((par.lambda * (1. + 2. *  
-			       (double) ( (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()) )));
+    DH += (int)(par.getLambda((*cell)[sxyp].getTau()) * (1. + 2. *
+	(double)( (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()) ));
   }
-  else
-    DH += (int)((par.lambda * (2.+  2.  * (double) 
-			       (  (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()
-			       - (*cell)[sxy].Area() + (*cell)[sxy].TargetArea() )) ));
+  else {
+    DH += (int)(par.getLambda((*cell)[sxyp].getTau()) * (1. + 2. *
+	(double)( (*cell)[sxyp].Area() - (*cell)[sxyp].TargetArea()) ));
+    DH += (int)(par.getLambda((*cell)[sxy].getTau()) * (1. - 2. *
+	(double)( (*cell)[sxy].Area() - (*cell)[sxy].TargetArea()) ));
+  }
 
 
   /* Chemotaxis */
@@ -276,55 +276,63 @@ int CellularPotts::DeltaH(int x,int y, int xp, int yp, PDE *PDEfield)
 
   
   /* Perimeter constraint */
-  if (par.lambda_perimeter > 0) {
+  {
+    int lp;
     if ( sxyp == MEDIUM ) {
-      DH -= par.lambda_perimeter *
-	(DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-	 DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-	      (*cell)[sxy].TargetPerimeter()));
+      lp = par.getLambdaPerimeter((*cell)[sxy].getTau());
+      if (lp)
+	DH -= lp *
+	  (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+	   DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+		(*cell)[sxy].TargetPerimeter()));
     }
     else if ( sxy == MEDIUM ) {
-      DH -= par.lambda_perimeter *
-	(DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-	 DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-	      (*cell)[sxyp].TargetPerimeter()));
+      lp = par.getLambdaPerimeter((*cell)[sxyp].getTau());
+      if (lp)
+	DH -= lp *
+	  (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+	   DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+		(*cell)[sxyp].TargetPerimeter()));
     }
     else {
-      DH -= par.lambda_perimeter *
-	(DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
-	 DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
-	      (*cell)[sxyp].TargetPerimeter()));
-      DH -= par.lambda_perimeter *
-	(DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
-	 DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
-	      (*cell)[sxy].TargetPerimeter()));
+      lp = par.getLambdaPerimeter((*cell)[sxyp].getTau());
+      if (lp)
+	DH -= lp *
+	  (DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+	   DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+		(*cell)[sxyp].TargetPerimeter()));
+      lp = par.getLambdaPerimeter((*cell)[sxy].getTau());
+      if (lp)
+	DH -= lp *
+	  (DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+	   DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+		(*cell)[sxy].TargetPerimeter()));
     }
   }
 
-  const double lambda2=par.lambda2;
-
   /* Length constraint */
-  // sp is expanding cell, s is retracting cell
-
-  
-  if ( sxyp == MEDIUM ) {
-    DH -= (int)(lambda2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-		       - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-			      (*cell)[sxy].TargetLength()) ));
-    
-  }
-  else if ( sxy == MEDIUM ) {
-    DH -= (int)(lambda2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-			 -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
-
-    
-  }
-  else {
-    DH -= (int)(lambda2*( (DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
-		     -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())) +
-		    ( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
-		      - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) - 
-			     (*cell)[sxy].TargetLength()) ) ));
+  {
+    double l2;
+    if ( sxyp == MEDIUM ) {
+      l2 = par.getLambda2((*cell)[sxy].getTau());
+      DH -= (int)(l2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+		     - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) -
+			    (*cell)[sxy].TargetLength()) ));
+    }
+    else if ( sxy == MEDIUM ) {
+      l2 = par.getLambda2((*cell)[sxyp].getTau());
+      DH -= (int)(l2*(DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+		     -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
+    }
+    else {
+      l2 = par.getLambda2((*cell)[sxyp].getTau());
+      DH -= (int)(l2*( DSQR((*cell)[sxyp].Length()-(*cell)[sxyp].TargetLength())
+		     -DSQR((*cell)[sxyp].GetNewLengthIfXYWereAdded(x,y)-(*cell)[sxyp].TargetLength())));
+      l2 = par.getLambda2((*cell)[sxy].getTau());
+      DH -= (int)(l2*( DSQR((*cell)[sxy].Length()-(*cell)[sxy].TargetLength())
+		     - DSQR((*cell)[sxy].GetNewLengthIfXYWereRemoved(x,y) -
+			    (*cell)[sxy].TargetLength()) ));
+    }
   }
   
   return DH;

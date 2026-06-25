@@ -51,11 +51,14 @@ Dish::Dish(void) {
   // Initial cell distribution is defined by user in INIT {} block
   Init();
     
-  if (par.target_area>0)
-    for (std::vector<Cell>::iterator c=cell.begin();c!=cell.end();c++) {
-      c->SetTargetArea(par.target_area);
-      c->SetTargetPerimeter(par.target_perimeter);
-    }
+  for (std::vector<Cell>::iterator c=cell.begin();c!=cell.end();c++) {
+    int tau = c->getTau();
+    int ta = par.getTargetArea(tau);
+    if (ta > 0)
+      c->SetTargetArea(ta);
+    c->SetTargetPerimeter(par.getTargetPerimeter(tau));
+    c->SetTargetLength(par.getTargetLength(tau));
+  }
   
   
 }

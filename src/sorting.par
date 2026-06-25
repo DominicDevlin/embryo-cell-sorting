@@ -1,12 +1,13 @@
 # Cellular Potts parameters
 T = 50
-target_area = 50
+target_area = 100
 target_length = 0
 target_perimeter = 35
-lambda_perimeter = 20
+lambda_perimeter = 0
 lambda = 50
 lambda2 = 0
 Jtable = Jpepperandsalt.dat
+TypesParamTable = TypesParam.dat
 conn_diss = 0
 vecadherinknockout = true
 chemotaxis = 0
