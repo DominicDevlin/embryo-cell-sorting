@@ -54,7 +54,8 @@ Dish::Dish(void) {
   if (par.target_area>0)
     for (std::vector<Cell>::iterator c=cell.begin();c!=cell.end();c++) {
       c->SetTargetArea(par.target_area);
-    } 
+      c->SetTargetPerimeter(par.target_perimeter);
+    }
   
   
 }

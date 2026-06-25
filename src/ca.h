@@ -257,6 +257,10 @@ public:
 		     double *res_area = 0, 
 		     double *res_cell_area = 0);
   
+  void MeasureCellPerimeters(void);
+  int GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y);
+  int GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y);
+
 private:
   void IndexShuffle(void);
   int DeltaH(int x,int y, int xp, int yp, PDE *PDEfield=0);

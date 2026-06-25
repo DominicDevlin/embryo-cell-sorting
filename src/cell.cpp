@@ -124,6 +124,8 @@ void Cell::ConstructorBody(int settau) {
   tau=settau;
   area=0;
   target_area=0;
+  perimeter=0;
+  target_perimeter=0;
   length=0;
   target_length=par.target_length;
   sum_x=0;

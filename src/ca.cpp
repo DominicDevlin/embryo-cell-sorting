@@ -275,8 +275,34 @@ int CellularPotts::DeltaH(int x,int y, int xp, int yp, PDE *PDEfield)
   }
 
   
+  /* Perimeter constraint */
+  if (par.lambda_perimeter > 0) {
+    if ( sxyp == MEDIUM ) {
+      DH -= par.lambda_perimeter *
+	(DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+	 DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+	      (*cell)[sxy].TargetPerimeter()));
+    }
+    else if ( sxy == MEDIUM ) {
+      DH -= par.lambda_perimeter *
+	(DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+	 DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+	      (*cell)[sxyp].TargetPerimeter()));
+    }
+    else {
+      DH -= par.lambda_perimeter *
+	(DSQR((*cell)[sxyp].Perimeter() - (*cell)[sxyp].TargetPerimeter()) -
+	 DSQR(GetNewPerimeterIfXYWereAdded(sxyp, x, y) -
+	      (*cell)[sxyp].TargetPerimeter()));
+      DH -= par.lambda_perimeter *
+	(DSQR((*cell)[sxy].Perimeter() - (*cell)[sxy].TargetPerimeter()) -
+	 DSQR(GetNewPerimeterIfXYWereRemoved(sxy, x, y) -
+	      (*cell)[sxy].TargetPerimeter()));
+    }
+  }
+
   const double lambda2=par.lambda2;
-  
+
   /* Length constraint */
   // sp is expanding cell, s is retracting cell
 
@@ -321,17 +347,20 @@ void CellularPotts::ConvertSpin(int x,int y,int xp,int yp)
   if ( (tmpcell=sigma[x][y]) ) { // if tmpcell is not MEDIUM
     (*cell)[tmpcell].DecrementArea();
     (*cell)[tmpcell].RemoveSiteFromMoments(x,y);
-        
+    (*cell)[tmpcell].SetPerimeter(
+        GetNewPerimeterIfXYWereRemoved(tmpcell, x, y));
+
     if (!(*cell)[tmpcell].Area()) {
       (*cell)[tmpcell].Apoptose();
       cerr << "Cell " << tmpcell << " apoptosed\n";
     }
   }
-  
+
   if ( (tmpcell=sigma[xp][yp]) ) {// if tmpcell is not MEDIUM
     (*cell)[tmpcell].IncrementArea();
     (*cell)[tmpcell].AddSiteToMoments(x,y);
-    
+    (*cell)[tmpcell].SetPerimeter(
+        GetNewPerimeterIfXYWereAdded(tmpcell, x, y));
   }
   sigma[x][y] = sigma[xp][yp];
 
@@ -682,8 +711,9 @@ void CellularPotts::ConstructInitCells (Dish &beast) {
   
   // Set the area and target area of the cell
   // makes use of the pointer to the Cell pointer of Dish
-  // which is a member of CellularPotts 
+  // which is a member of CellularPotts
   MeasureCellSizes();
+  MeasureCellPerimeters();
   
   // set zygote_area to mean cell area.
   int mean_area=0;
@@ -1449,5 +1479,91 @@ double CellularPotts::Compactness(double *res_compactness, double *res_area, dou
   // return compactness
   return cell_area/hull_area;
 
+}
+
+int CellularPotts::GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y) {
+
+  int perim = (*cell)[sxyp].Perimeter();
+
+  for (int i = 1; i <= n_nb; i++) {
+
+    int xp2, yp2;
+    xp2 = x + nx[i];
+    yp2 = y + ny[i];
+
+    if (par.periodic_boundaries) {
+      if (xp2 <= 0)
+	xp2 = sizex - 2 + xp2;
+      if (yp2 <= 0)
+	yp2 = sizey - 2 + yp2;
+      if (xp2 >= sizex - 1)
+	xp2 = xp2 - sizex + 2;
+      if (yp2 >= sizey - 1)
+	yp2 = yp2 - sizey + 2;
+    }
+    if (sigma[xp2][yp2] == sxyp) {
+      perim--;
+    } else {
+      perim++;
+    }
+  }
+  return perim;
+}
+
+int CellularPotts::GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y) {
+
+  int perim = (*cell)[sxy].Perimeter();
+
+  for (int i = 1; i <= n_nb; i++) {
+
+    int xp2, yp2;
+    xp2 = x + nx[i];
+    yp2 = y + ny[i];
+
+    if (par.periodic_boundaries) {
+      if (xp2 <= 0)
+	xp2 = sizex - 2 + xp2;
+      if (yp2 <= 0)
+	yp2 = sizey - 2 + yp2;
+      if (xp2 >= sizex - 1)
+	xp2 = xp2 - sizex + 2;
+      if (yp2 >= sizey - 1)
+	yp2 = yp2 - sizey + 2;
+    }
+    if (sigma[xp2][yp2] == sxy) {
+      perim++;
+    } else {
+      perim--;
+    }
+  }
+  return perim;
+}
+
+void CellularPotts::MeasureCellPerimeters(void) {
+  for (int x = 1; x < sizex - 1; x++) {
+    for (int y = 1; y < sizey - 1; y++) {
+      if (sigma[x][y] > 0) {
+	for (int i = 1; i <= n_nb; i++) {
+	  int xp2, yp2;
+	  xp2 = x + nx[i];
+	  yp2 = y + ny[i];
+	  if (par.periodic_boundaries) {
+	    if (xp2 <= 0)
+	      xp2 = sizex - 2 + xp2;
+	    if (yp2 <= 0)
+	      yp2 = sizey - 2 + yp2;
+	    if (xp2 >= sizex - 1)
+	      xp2 = xp2 - sizex + 2;
+	    if (yp2 >= sizey - 1)
+	      yp2 = yp2 - sizey + 2;
+	  }
+	  if (sigma[xp2][yp2] != sigma[x][y]) {
+	    (*cell)[sigma[x][y]].IncrementTargetPerimeter();
+	    (*cell)[sigma[x][y]].IncrementPerimeter();
+	  }
+	}
+      }
+    }
+  }
 }
 

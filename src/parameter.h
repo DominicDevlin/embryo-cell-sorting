@@ -38,6 +38,8 @@ class Parameter {
   int target_length;
   double lambda;
   double lambda2;
+  int target_perimeter;
+  int lambda_perimeter;
   char * Jtable;
   int conn_diss;
   bool vecadherinknockout;

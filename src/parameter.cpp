@@ -38,6 +38,8 @@ Parameter::Parameter() {
   target_length = 60;
   lambda = 50;
   lambda2 = 5.0;
+  target_perimeter = 0;
+  lambda_perimeter = 0;
   Jtable = strdup("J.dat");
   conn_diss = 2000;
   vecadherinknockout = false;
@@ -116,6 +118,8 @@ void Parameter::Read(const char *filename) {
   target_length = igetpar(fp, "target_length", 60, true);
   lambda = fgetpar(fp, "lambda", 50, true);
   lambda2 = fgetpar(fp, "lambda2", 5.0, true);
+  target_perimeter = igetpar(fp, "target_perimeter", 0, true);
+  lambda_perimeter = igetpar(fp, "lambda_perimeter", 0, true);
   Jtable = sgetpar(fp, "Jtable", "J.dat", true);
   conn_diss = igetpar(fp, "conn_diss", 2000, true);
   vecadherinknockout = bgetpar(fp, "vecadherinknockout", false, true);
@@ -166,6 +170,8 @@ void Parameter::Write(ostream &os) const {
   os << " target_length = " << target_length << endl;
   os << " lambda = " << lambda << endl;
   os << " lambda2 = " << lambda2 << endl;
+  os << " target_perimeter = " << target_perimeter << endl;
+  os << " lambda_perimeter = " << lambda_perimeter << endl;
 
   if (Jtable) 
     os << " Jtable = " << Jtable << endl;

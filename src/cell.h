@@ -65,6 +65,8 @@ public:
     amount++;
     area=src.area;
     target_area=src.target_area;
+    perimeter=src.perimeter;
+    target_perimeter=src.target_perimeter;
     length=src.length;
     target_length=src.target_length;
     growth_threshold=src.growth_threshold;
@@ -127,13 +129,15 @@ public:
     
     length=src.length;
     target_length=src.target_length;
+    perimeter=src.perimeter;
+    target_perimeter=src.target_perimeter;
     amount++;
     owner=src.owner;
-    
+
     chem = new double[par.n_chem];
     for (int ch=0;ch<par.n_chem;ch++)
       chem[ch]=src.chem[ch];
-    
+
     return *this;
 
   }
@@ -181,6 +185,26 @@ public:
   //! Return Cell's target area.
   inline int TargetArea() const {
     return target_area;
+  }
+
+  //! Return Cell's actual perimeter.
+  inline int Perimeter() const {
+    return perimeter;
+  }
+
+  //! Return Cell's target perimeter.
+  inline int TargetPerimeter() const {
+    return target_perimeter;
+  }
+
+  //! Set Cell's target perimeter.
+  inline int SetTargetPerimeter(const int new_perimeter) {
+    return target_perimeter=new_perimeter;
+  }
+
+  //! Set Cell's perimeter.
+  inline int SetPerimeter(const int new_perimeter) {
+    return perimeter=new_perimeter;
   }
   
   /*! \brief Return Cell's target length.
@@ -452,6 +476,24 @@ private:
     return --area;
   }
 
+  //! Increments the cell's actual perimeter by 1 unit.
+  inline int IncrementPerimeter() {
+    return ++perimeter;
+  }
+
+  //! Decrements the cell's actual perimeter by 1 unit.
+  inline int DecrementPerimeter() {
+    return --perimeter;
+  }
+
+  inline int IncrementTargetPerimeter() {
+    return ++target_perimeter;
+  }
+
+  inline int DecrementTargetPerimeter() {
+    return --target_perimeter;
+  }
+
   
   /*! \brief Sets target area to actual area, to remove "pressure".
 
@@ -503,6 +545,8 @@ protected:
   
   int area;
   int target_area;
+  int perimeter;
+  int target_perimeter;
   int growth_threshold;
 
   double v[2];

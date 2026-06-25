@@ -2,6 +2,8 @@
 T = 50
 target_area = 50
 target_length = 0
+target_perimeter = 35
+lambda_perimeter = 20
 lambda = 50
 lambda2 = 0
 Jtable = Jpepperandsalt.dat
