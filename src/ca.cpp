@@ -280,20 +280,20 @@ int CellularPotts::DeltaH(int x,int y, int xp, int yp, PDE *PDEfield)
   // ==========================================
   if (par.active_motion)
   {
-    double &mot_strength_sxy = cell_sxy.GetMotilityStrength();
-    double &mot_strength_sxyp = cell_sxyp.GetMotilityStrength();
+    double &mot_strength_sxy = (*cell)[sxy].GetMotilityStrength();
+    double &mot_strength_sxyp = (*cell)[sxyp].GetMotilityStrength();
     if (sxyp == MEDIUM)
     {
-      DH -= cell_sxy.GetMotilityStrength() * cell_sxy.ActiveDotProduct_removed(x, y);
+      DH -= (*cell)[sxy].GetMotilityStrength() * (*cell)[sxy].ActiveDotProduct_removed(x, y);
     }
     else if (sxy == MEDIUM)
     {
-      DH -= cell_sxyp.GetMotilityStrength() * cell_sxyp.ActiveDotProduct_added(x, y);
+      DH -= (*cell)[sxyp].GetMotilityStrength() * (*cell)[sxyp].ActiveDotProduct_added(x, y);
     }
     else
     {
-      DH -= cell_sxyp.GetMotilityStrength() * cell_sxyp.ActiveDotProduct_added(x, y);
-      DH -= cell_sxy.GetMotilityStrength() * cell_sxy.ActiveDotProduct_removed(x, y);
+      DH -= (*cell)[sxyp].GetMotilityStrength() * (*cell)[sxyp].ActiveDotProduct_added(x, y);
+      DH -= (*cell)[sxy].GetMotilityStrength() * (*cell)[sxy].ActiveDotProduct_removed(x, y);
     }
   }
 
@@ -1338,20 +1338,32 @@ void CellularPotts::ResetTargetLengths(void)  {
 }
 
 void CellularPotts::SetRandomTypes(void) {
-  
+
   // each cell gets a random type 1..maxtau
-  
+
   vector<Cell>::iterator c=cell->begin(); ++c;
-  
+
   for (;
        c!=cell->end();
        c++) {
-    
+
     int celltype = RandomNumber(Cell::maxtau);
     c->setTau(celltype);
-    
-  } 
-  
+
+  }
+
+}
+
+void CellularPotts::InitChemByType(void) {
+
+  if (!par.init_chem_per_type) return;
+
+  vector<Cell>::iterator c = cell->begin(); ++c;
+  for (; c != cell->end(); c++) {
+    int tau = c->getTau();
+    for (int ch = 0; ch < par.n_chem; ch++)
+      c->SetChem(ch, par.getInitChem(tau, ch));
+  }
 }
 
 void CellularPotts::GrowAndDivideCells(int growth_rate) {

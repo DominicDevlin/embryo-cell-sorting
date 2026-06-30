@@ -52,6 +52,7 @@ class Parameter {
   double *lambda_per_type;
   double *lambda2_per_type;
   int *lambda_perimeter_per_type;
+  double **init_chem_per_type; // [n_cell_types][n_chem]
 
   inline int getTargetArea(int tau) const {
     if (target_area_per_type && tau >= 0 && tau < n_cell_types)
@@ -83,6 +84,11 @@ class Parameter {
       return lambda_perimeter_per_type[tau];
     return lambda_perimeter;
   }
+  inline double getInitChem(int tau, int ch) const {
+    if (init_chem_per_type && tau >= 0 && tau < n_cell_types && ch >= 0 && ch < n_chem)
+      return init_chem_per_type[tau][ch];
+    return 0.0;
+  }
   int conn_diss;
   bool vecadherinknockout;
   bool extensiononly;
@@ -108,6 +114,7 @@ class Parameter {
   double subfield;
   int relaxation;
   int storage_stride;
+  bool active_motion;
   bool graphics;
   bool store;
   char * datadir;

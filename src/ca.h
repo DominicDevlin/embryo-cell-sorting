@@ -261,6 +261,11 @@ public:
   int GetNewPerimeterIfXYWereAdded(int sxyp, int x, int y);
   int GetNewPerimeterIfXYWereRemoved(int sxy, int x, int y);
 
+  /*! \brief Set the internal chemical concentrations of all cells
+    according to their type, using init_chem_per_type from the
+    TypesParamTable. Call this after cell types have been assigned. */
+  void InitChemByType(void);
+
 private:
   void IndexShuffle(void);
   int DeltaH(int x,int y, int xp, int yp, PDE *PDEfield=0);

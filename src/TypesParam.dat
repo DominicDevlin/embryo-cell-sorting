@@ -1,6 +1,5 @@
 3
-0   0   0   0     0     0
-100 0  0   50    0   0
-100 0  0   50   0  1
-
-Area length perimeter lamda lambda2 lambda_perimeter
+0   0   0   0     0     0    0.0 0.0
+100 0  0   50    0   0    1.0 0.0
+100 0  0   50   0  1     0.5 0.0
+# columns: target_area target_length target_perimeter lambda lambda2 lambda_perimeter chem_0 chem_1

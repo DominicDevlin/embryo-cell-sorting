@@ -36,6 +36,8 @@ rseed = -1
 subfield = 1.0
 relaxation = 0
 
+active_motion = false
+
 # output
 storage_stride = 10
 graphics = true

@@ -138,8 +138,13 @@ void Cell::ConstructorBody(int settau) {
   growth_threshold=0;
   v[0]=0.; v[1]=0.;
   n_copies=0;
+  motility_strength=0.;
+  avg_vx=0.;
+  avg_vy=0.;
 
   chem = new double[par.n_chem];
+  for (int ch = 0; ch < par.n_chem; ch++)
+    chem[ch] = 0.0;
 
 }
 

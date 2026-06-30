@@ -85,13 +85,16 @@ public:
     sum_xx=src.sum_xx;
     sum_yy=src.sum_yy;
     sum_xy=src.sum_xy;
+    motility_strength=src.motility_strength;
+    avg_vx=src.avg_vx;
+    avg_vy=src.avg_vy;
     owner=src.owner;
-    
+
     chem = new double[par.n_chem];
     for (int ch=0;ch<par.n_chem;ch++)
       chem[ch]=src.chem[ch];
-    
-    
+
+
   }
   
   /*! \brief Add a new cell to the dish.
@@ -120,13 +123,16 @@ public:
     v[0]=src.v[0];
     v[1]=src.v[1];
     n_copies=src.n_copies;
-    
+
     sum_x=src.sum_x;
     sum_y=src.sum_y;
     sum_xx=src.sum_xx;
     sum_yy=src.sum_yy;
     sum_xy=src.sum_xy;
-    
+    motility_strength=src.motility_strength;
+    avg_vx=src.avg_vx;
+    avg_vy=src.avg_vy;
+
     length=src.length;
     target_length=src.target_length;
     perimeter=src.perimeter;
@@ -171,11 +177,17 @@ public:
     return colour=new_colour;
   }
 
-  /* \brief Returns the energy between this cell and cell2. 
+  /* \brief Returns the energy between this cell and cell2.
 
   Called from CellularPotts::DeltaH.
   **/
   int EnergyDifference(const Cell &cell2) const;
+
+  //! Returns the internal concentration of chemical ch.
+  inline double GetChem(int ch) const { return chem[ch]; }
+
+  //! Sets the internal concentration of chemical ch to val.
+  inline double SetChem(int ch, double val) { return chem[ch] = val; }
 
   //! Return Cell's actual area.
   inline int Area() const {
@@ -657,7 +669,15 @@ protected:
   long int sum_xx;
   long int sum_yy;
   long int sum_xy;
-  
+
+  double motility_strength;
+  double avg_vx;
+  double avg_vy;
+  double com_x;
+  double com_y;
+  double com_shiftx;
+  double com_shifty;
+
   const Dish *owner; // pointer to owner of cell
 
 };

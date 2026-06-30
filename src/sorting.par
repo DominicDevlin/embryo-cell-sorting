@@ -39,6 +39,13 @@ rseed = -1
 subfield = 1.0
 relaxation = 0
 
+# active_motion
+active_motion = true
+
+# chemical concentrations
+n_chem = 2
+
+
 # output
 storage_stride = 100
 graphics = true

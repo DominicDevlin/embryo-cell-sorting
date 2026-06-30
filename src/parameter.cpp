@@ -50,6 +50,7 @@ Parameter::Parameter() {
   lambda_per_type = 0;
   lambda2_per_type = 0;
   lambda_perimeter_per_type = 0;
+  init_chem_per_type = 0;
   conn_diss = 2000;
   vecadherinknockout = false;
   extensiononly = false;
@@ -78,6 +79,7 @@ Parameter::Parameter() {
   subfield = 1.0;
   relaxation = 0;
   storage_stride = 10;
+  active_motion = false;
   graphics = true;
   store = false;
   datadir = strdup("data_film");
@@ -118,6 +120,12 @@ void Parameter::CleanUp(void) {
      free(lambda2_per_type);
   if (lambda_perimeter_per_type)
      free(lambda_perimeter_per_type);
+  if (init_chem_per_type) {
+    for (int i = 0; i < n_cell_types; i++)
+      free(init_chem_per_type[i]);
+    free(init_chem_per_type);
+    init_chem_per_type = 0;
+  }
 
 }
 
@@ -145,8 +153,6 @@ void Parameter::Read(const char *filename) {
   lambda_perimeter = igetpar(fp, "lambda_perimeter", 0, true);
   Jtable = sgetpar(fp, "Jtable", "J.dat", true);
   TypesParamTable = sgetpar(fp, "TypesParamTable", "", true);
-  if (TypesParamTable && strlen(TypesParamTable) > 0)
-    ReadTypesParamTable(TypesParamTable);
   conn_diss = igetpar(fp, "conn_diss", 2000, true);
   vecadherinknockout = bgetpar(fp, "vecadherinknockout", false, true);
   extensiononly = bgetpar(fp, "extensiononly", false, true);
@@ -155,6 +161,8 @@ void Parameter::Read(const char *filename) {
   neighbours = igetpar(fp, "neighbours", 2, true);
   periodic_boundaries = bgetpar(fp, "periodic_boundaries", false, true);
   n_chem = igetpar(fp, "n_chem", 1, true);
+  if (TypesParamTable && strlen(TypesParamTable) > 0)
+    ReadTypesParamTable(TypesParamTable);
   diff_coeff = dgetparlist(fp, "diff_coeff", n_chem, true);
   decay_rate = dgetparlist(fp, "decay_rate", n_chem, true);
   secr_rate = dgetparlist(fp, "secr_rate", n_chem, true);
@@ -172,6 +180,7 @@ void Parameter::Read(const char *filename) {
   subfield = fgetpar(fp, "subfield", 1.0, true);
   relaxation = igetpar(fp, "relaxation", 0, true);
   storage_stride = igetpar(fp, "storage_stride", 10, true);
+  active_motion = bgetpar(fp, "active_motion", false, true);
   graphics = bgetpar(fp, "graphics", true, true);
   store = bgetpar(fp, "store", false, true);
   datadir = sgetpar(fp, "datadir", "data_film", true);
@@ -228,6 +237,7 @@ void Parameter::Write(ostream &os) const {
   os << " subfield = " << subfield << endl;
   os << " relaxation = " << relaxation << endl;
   os << " storage_stride = " << storage_stride << endl;
+  os << " active_motion = " << sbool(active_motion) << endl;
   os << " graphics = " << sbool(graphics) << endl;
   os << " store = " << sbool(store) << endl;
 
@@ -260,6 +270,10 @@ void Parameter::ReadTypesParamTable(const char *fname) {
   lambda2_per_type = (double *)malloc(n_cell_types * sizeof(double));
   lambda_perimeter_per_type = (int *)malloc(n_cell_types * sizeof(int));
 
+  init_chem_per_type = (double **)malloc(n_cell_types * sizeof(double *));
+  for (int i = 0; i < n_cell_types; i++)
+    init_chem_per_type[i] = (double *)calloc(n_chem, sizeof(double));
+
   for (int i = 0; i < n_cell_types; i++) {
     f >> target_area_per_type[i]
       >> target_length_per_type[i]
@@ -267,6 +281,10 @@ void Parameter::ReadTypesParamTable(const char *fname) {
       >> lambda_per_type[i]
       >> lambda2_per_type[i]
       >> lambda_perimeter_per_type[i];
+    for (int ch = 0; ch < n_chem; ch++) {
+      if (!(f >> init_chem_per_type[i][ch]))
+        init_chem_per_type[i][ch] = 0.0;
+    }
   }
 }
 
